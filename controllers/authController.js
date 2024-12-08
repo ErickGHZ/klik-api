@@ -44,22 +44,25 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Validación simple
-    const user = await User.findOne({ email });
+    // Buscar usuario por email o nombre
+    const user = await User.findOne({ $or: [{ email }, { name: email }] });
+
     if (!user) {
       return res.status(400).json({ message: 'Usuario no encontrado' });
     }
 
-    // Aquí iría la comparación de la contraseña (con bcrypt si usas hashing)
+    // Comparar contraseña
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Contraseña incorrecta' });
     }
 
+    // Login exitoso
     res.status(200).json({ message: 'Login exitoso', user });
   } catch (error) {
     console.error('Error al hacer login:', error);
     res.status(500).json({ message: 'Error en el servidor' });
   }
 };
+
 
