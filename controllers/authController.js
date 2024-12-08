@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs'); // Importar bcryptjs
 const User = require('../models/user');
+const Inventory = require('../models/Inventory'); 
 
 exports.register = async (req, res) => {
   const { name, email, password } = req.body;
@@ -25,10 +26,14 @@ exports.register = async (req, res) => {
     const salt = await bcrypt.genSalt(10); // Generar un "salt" para la encriptación
     const hashedPassword = await bcrypt.hash(password, salt); // Encriptar la contraseña
 
-    const newUser = new User({ name, email, password: hashedPassword, });
-
     // Guardar en la base de datos
+    const newUser = new User({ name, email, password: hashedPassword, });
     await newUser.save();
+
+    // Crear el inventario asociado
+    const newInventory = new Inventory({ userId: newUser._id });
+    await newInventory.save();
+
 
     res.status(201).json({
       message: 'Usuario registrado con éxito',

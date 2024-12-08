@@ -5,6 +5,7 @@ const cors = require('cors');
 
 // Importar rutas
 const authRoutes = require('./routes/auth');
+const inventoryRoutes = require('./routes/inventoryRoutes');
 
 const app = express();
 
@@ -14,6 +15,8 @@ app.use(bodyParser.json());
 
 // Rutas
 app.use('/api/auth', authRoutes);
+app.use('/api/inventory', inventoryRoutes);
+
 
 // Puerto
 const PORT = process.env.PORT || 5000;
