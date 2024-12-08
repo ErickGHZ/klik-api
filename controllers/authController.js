@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs'); // Importar bcryptjs
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const Inventory = require('../models/Inventory'); 
 
@@ -49,25 +50,39 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Buscar usuario por email o nombre
+    // Buscar usuario por email o nombre de usuario (name)
     const user = await User.findOne({ $or: [{ email }, { name: email }] });
 
     if (!user) {
       return res.status(400).json({ message: 'Usuario no encontrado' });
     }
 
-    // Comparar contraseña
+    // Comparación de la contraseña
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Contraseña incorrecta' });
     }
 
-    // Login exitoso
-    res.status(200).json({ message: 'Login exitoso', user });
+    // Crear JWT token
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    // Obtener el inventario del usuario
+    const inventory = await Inventory.findOne({ userId: user._id });
+    if (!inventory) {
+      return res.status(400).json({ message: 'Inventario no encontrado' });
+    }
+
+    // Responder con token y el inventario
+    res.status(200).json({
+      message: 'Login exitoso',
+      token,
+      inventory,  // Enviar el inventario junto con el token
+    });
   } catch (error) {
     console.error('Error al hacer login:', error);
     res.status(500).json({ message: 'Error en el servidor' });
   }
 };
+
 
 
